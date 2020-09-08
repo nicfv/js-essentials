@@ -9,7 +9,7 @@ class Logger {
 
      /**
       * Print a message for debugging. (Log level = 1)
-      * @param {*} message Message to print.
+      * @param message Message to print.
       */
     static debug(message) { Logger.#printLog(1, 'DEBUG', '#aaa', message); }
 

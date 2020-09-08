@@ -1,3 +1,4 @@
+'use strict';
 /**
  * Create a new HTMLCanvasElement with existing event handlers.
  * @param {string} title The title of the game. Leave null to keep title as existing value.
