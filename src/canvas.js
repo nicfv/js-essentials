@@ -1,127 +1,136 @@
 'use strict';
 /**
- * Create a new HTMLCanvasElement with existing event handlers.
- * @param {string} title The title of the game. Leave null to keep title as existing value.
- * @param {string} id The HTML id of the canvas.
- * @param {number} width The width of the canvas, in pixels.
- * @param {number} height The height of the canvas, in pixels.
- * @param {number} tabIndex The tab index of the canvas.
- * @param {HTMLElement} parentElement The element that the canvas is nested in.
- * @param {number} framesPerSecond The amount of frames to be displayed, per second.
- * @param {string} backgroundColor The hex code of the background color.
- * @param {boolean} caseSensitivity When true, the input received is case sensitive.
- * @param {boolean} pauseOnLoseFocus When true, the game will pause when the window loses focus.
- * @param {number} fadeSpeed How fast the previous frame fades behind the new frame. 0 = never, 1 = instant
- * @param {function} refreshCallback The function to call on frame update. (int: frame)
- * @param {function} clickCallback The function to call on mouse click. (int: x, int: y)
+ * Defines a canvas element with existing event handlers used as a base to build games.
  */
-function Canvas(title, id, width, height, tabIndex, parentElement, framesPerSecond, backgroundColor, caseSensitivity, pauseOnLoseFocus, fadeSpeed, refreshCallback, clickCallback) {
-    // ====================== //
-    // === Default Values === //
-    // ====================== //
-    const defaultTitle = null;
-    const defaultId = null;
-    const defaultWidth = 600;
-    const defaultHeight = 400;
-    const defaultTabIndex = 1;
-    const defaultParentElement = document.body;
-    const msPerSec = 1000;
-    const defaultFramesPerSecond = 10;
-    const defaultBackgroundColor = "#000";
-    const defaultCaseSensitivity = false;
-    const defaultPauseOnLoseFocus = true;
-    const defaultFadeSpeed = 1;
-    const defaultRefreshCallback = (frame) => {};
-    const defaultClickCallback = (x, y) => {};
-    // ========================== //
-    // === Private Properties === //
-    // ========================== //
-    const _title = title || defaultTitle;
-    const _id = id || defaultId;
-    const _width = width || defaultWidth;
-    const _height = height || defaultHeight;
-    const _tabIndex = tabIndex || defaultTabIndex;
-    const _parentElement = parentElement || defaultParentElement;
-    const _refreshRate = msPerSec / (framesPerSecond ? framesPerSecond : defaultFramesPerSecond);
-    const _backgroundColor = backgroundColor || defaultBackgroundColor;
-    const _caseSensitivity = (caseSensitivity === true || caseSensitivity === false) ?
-        caseSensitivity : defaultCaseSensitivity;
-    const _pauseOnLoseFocus = (pauseOnLoseFocus === true || pauseOnLoseFocus === false) ?
-        pauseOnLoseFocus : defaultPauseOnLoseFocus;
-    const _fadeSpeed = fadeSpeed >= 0 ? fadeSpeed : defaultFadeSpeed;
-    const _canvas = document.createElement("canvas");
-    const _context = _canvas.getContext("2d");
-    const _keysDown = [];
-    let   _frame = 0;
-    let   _refreshCallback = refreshCallback || defaultRefreshCallback;
-    let   _clickCallback = clickCallback || defaultClickCallback;
-    // ====================== //
-    // === Public Methods === //
-    // ====================== //
-    this.graphics = () => _context;
-    this.getWidth = () => _width;
-    this.getHeight = () => _height;
-    this.getInterval = () => _refreshRate;
-    this.isKeyDown = (key) => _keysDown.includes(_caseSensitivity ? key : key.toLowerCase());
-    this.setRefreshCallback = (newRefreshCallback) => {
-        _refreshCallback = newRefreshCallback || _refreshCallback || defaultRefreshCallback;
-    };
-    this.setClickCallback = (newClickCallback) => {
-        _clickCallback = newClickCallback || _clickCallback || defaultClickCallback;
-    };
-    // ==================== //
-    // === Canvas Setup === //
-    // ==================== //
-    if(_id) { _canvas.id = _id; }
-    _canvas.width = _width;
-    _canvas.height = _height;
-    _canvas.style.backgroundColor = _backgroundColor;
-    _canvas.tabIndex = _tabIndex;
-    // ====================== //
-    // === Event Handling === //
-    // ====================== //
-    _canvas.addEventListener("keydown", (e) => {
-        e.preventDefault();
-        let keyName = e.key;
-        if(!_caseSensitivity) { keyName = keyName.toLowerCase(); }
-        if(!_keysDown.includes(keyName)) {
-            _keysDown.push(keyName);
-        }
-    }, false);
-    _canvas.addEventListener("keyup", (e) => {
-        e.preventDefault();
-        let keyName = e.key;
-        if(!_caseSensitivity) { keyName = keyName.toLowerCase(); }
-        if(_keysDown.includes(keyName)) {
-            for(let i = 0; i < _keysDown.length; i++) {
-                if(_keysDown[i] === keyName) {
-                    _keysDown.splice(i, 1);
-                    return;
+class Canvas {
+    static #isSet(x) { return x !== undefined && x !== null; }
+    static #isNumeric(x) { return Canvas.#isSet(x) && isFinite(+x); }
+    static #isBool(x) { return Canvas.#isSet(x) && x === !!x; }
+    static #isString(x) { return Canvas.#isSet(x) && x === x.toString(); }
+    static #MS_PER_SEC = 1000;
+    
+    #title = null;
+    #id = null;
+    #width = 600;
+    #height = 400;
+    #tabIndex = 1;
+    #parentElement = document.body;
+    #framesPerSecond = 10;
+    #backgroundColor = '#000';
+    #caseSensitivity = false;
+    #pauseOnLoseFocus = true;
+    #refreshCallback = (frame) => {};
+    #clickCallback = (x, y) => {};
+    
+    #refreshRate = Canvas.#MS_PER_SEC / this.#framesPerSecond;
+    #canvas = document.createElement('canvas');
+    #context = this.#canvas.getContext('2d');
+    #keysDown = [];
+    #frame = 0;
+
+    /**
+     * Create a new HTML canvas element with pre built event handlers.
+     * @param title The title of the game. Leave null to keep the existing value.
+     * @param id The HTML id of the canvas.
+     * @param width The width of the canvas in pixels.
+     * @param height The height of the canvas in pixels.
+     * @param tabIndex The tab index of the canvas.
+     * @param parentElement The element that this canvas is nested in.
+     * @param framesPerSecond The amount of frames to be displayed, per second.
+     * @param backgroundColor A valid CSS color code for the background color of the canvas.
+     * @param caseSensitivity When true, input received is case sensitive.
+     * @param pauseOnLoseFocus When true, the game will pause when it loses focus.
+     * @param refreshCallback The function(int: frame) to call on frame update.
+     * @param clickCallback The function(int: x, int: y) to call on mouse click.
+     */
+    constructor(title, id, width, height, tabIndex, parentElement, framesPerSecond, backgroundColor, caseSensitivity, pauseOnLoseFocus, refreshCallback, clickCallback) {
+        this.#title = Canvas.#isString(title) ? title : this.#title;
+        this.#id = Canvas.#isString(id) ? id : this.#id;
+        this.#width = Canvas.#isNumeric(width) ? width : this.#width;
+        this.#height = Canvas.#isNumeric(height) ? height : this.#height;
+        this.#tabIndex = Canvas.#isNumeric(tabIndex) ? tabIndex : this.#tabIndex;
+        this.#parentElement = Canvas.#isSet(parentElement) ? parentElement : this.#parentElement;
+        this.#refreshRate = Canvas.#MS_PER_SEC / (Canvas.#isNumeric(framesPerSecond) ? framesPerSecond : this.#framesPerSecond);
+        this.#backgroundColor = Canvas.#isString(backgroundColor) ? backgroundColor : this.#backgroundColor;
+        this.#caseSensitivity = Canvas.#isBool(caseSensitivity) ? caseSensitivity : this.#caseSensitivity;
+        this.#pauseOnLoseFocus = Canvas.#isBool(pauseOnLoseFocus) ? pauseOnLoseFocus : this.#pauseOnLoseFocus;
+        this.#refreshCallback = Canvas.#isSet(refreshCallback) ? refreshCallback : this.#refreshCallback;
+        this.#clickCallback = Canvas.#isSet(clickCallback) ? clickCallback : this.#clickCallback;
+        this.#setup();
+    }
+
+    /**
+     * Represents the graphics tool to draw objects onto the canvas.
+     */
+    get graphics() { return this.#context; }
+    /**
+     * Returns the width of the canvas in pixels.
+     */
+    get width() { return this.#width; }
+    /**
+     * Returns the height of the canvas in pixels.
+     */
+    get height() { return this.#height; }
+    /**
+     * Returns the delta time in between each frame, in milliseconds.
+     */
+    get interval() { return this.#refreshRate; }
+    /**
+     * Set the callback function(int: frame) to call on frame update.
+     */
+    set refreshCallback(x) { this.#refreshCallback = Canvas.#isSet(x) ? x : this.#refreshCallback; }
+    /**
+     * Set the callback function(int: x, int: y) to call on mouse click.
+     */
+    set clickCallback(x) { this.#clickCallback = Canvas.#isSet(x) ? x : this.#clickCallback; }
+    /**
+     * Check if a key is pressed.
+     * @param key Returns true if this key is pressed.
+     */
+    isKeyDown(key) { return this.#keysDown.includes(this.#caseSensitivity ? key : key.toLowerCase()); }
+    
+    #setup() {
+        if(!!this.#id) { this.#canvas.id = this.#id; }
+        this.#canvas.width = this.#width;
+        this.#canvas.height = this.#height;
+        this.#canvas.style.backgroundColor = this.#backgroundColor;
+        this.#canvas.tabIndex = this.#tabIndex;
+        this.#canvas.addEventListener('keydown', (e) => {
+            e.preventDefault();
+            let keyName = e.key;
+            if(!this.#caseSensitivity) { keyName = keyName.toLowerCase(); }
+            if(!this.#keysDown.includes(keyName)) {
+                this.#keysDown.push(keyName);
+            }
+        }, false);
+        this.#canvas.addEventListener('keyup', (e) => {
+            e.preventDefault();
+            let keyName = e.key;
+            if(!this.#caseSensitivity) { keyName = keyName.toLowerCase(); }
+            if(this.#keysDown.includes(keyName)) {
+                for(let i = 0; i < this.#keysDown.length; i++) {
+                    if(this.#keysDown[i] === keyName) {
+                        this.#keysDown.splice(i, 1);
+                        return;
+                    }
                 }
             }
-        }
-    }, false);
-    _canvas.addEventListener("click", (e) => {
-        e.preventDefault();
-        _canvas.focus(); // Redundancy
-        _clickCallback(e.x, e.y);
-    }, false);
-    const _refresh = () => {
-        if(_pauseOnLoseFocus && _canvas === document.activeElement) {
-            if(_fadeSpeed >= 1) {
-                _context.clearRect(0, 0, _width, _height);
-            } else if(_fadeSpeed > 0) {
-                _context.fillStyle = "rgba(0,0,0," + _fadeSpeed + ")";
-                _context.fillRect(0, 0, _width, _height);
-            }
-            _refreshCallback(++_frame);
+        }, false);
+        this.#canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.#canvas.focus(); // Redundancy
+            this.#clickCallback(e.x, e.y);
+        }, false);
+        if(this.#title) { document.title = this.#title; }
+        this.#parentElement.appendChild(this.#canvas);
+        this.#canvas.focus();
+        setInterval(this.#refresh, this.#refreshRate);
+    }
+
+    #refresh = () => {
+        if(!this.#pauseOnLoseFocus || this.#canvas === document.activeElement) {
+            this.#context.clearRect(0, 0, this.#width, this.#height);
+            this.#refreshCallback(++this.#frame);
         }
     };
-    setInterval(_refresh, _refreshRate);
-    // ======================= //
-    // === Document Append === //
-    // ======================= //
-    if(_title) { document.title = _title; }
-    _parentElement.appendChild(_canvas);
-    _canvas.focus();
 }

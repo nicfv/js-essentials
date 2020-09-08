@@ -1,10 +1,12 @@
 'use strict';
 /**
  * Defines a logger with system logging functions.
- * @param logLevel Determines the minimum type of logs to display.
  */
 class Logger {
     static #_logLevel = 0;
+    /**
+     * Determines the minimum level of logs to display.
+     */
     static set logLevel(logLevel) { Logger.#_logLevel = isFinite(+logLevel) ? +logLevel : 0; }
 
      /**
