@@ -25,6 +25,7 @@ class Canvas {
     #refreshRate = Canvas.#MS_PER_SEC / this.#framesPerSecond;
     #canvas = document.createElement('canvas');
     #context = this.#canvas.getContext('2d');
+    #clientRect = null;
     #keysDown = [];
     #mouseHover = { 'x':0, 'y':0 };
     #frame = 0;
@@ -119,15 +120,13 @@ class Canvas {
         }, false);
         this.#canvas.addEventListener('mousemove', (e) => {
             e.preventDefault();
-            const clientRect = e.target.getBoundingClientRect();
-            this.#mouseHover.x = e.clientX - clientRect.left;
-            this.#mouseHover.y = e.clientY - clientRect.top;
+            this.#mouseHover.x = e.clientX - this.#clientRect.left;
+            this.#mouseHover.y = e.clientY - this.#clientRect.top;
         }, false);
         this.#canvas.addEventListener('click', (e) => {
             e.preventDefault();
             this.#canvas.focus(); // Redundancy
-            const clientRect = e.target.getBoundingClientRect();
-            this.#clickCallback({ 'x':(e.clientX - clientRect.left), 'y':(e.clientY - clientRect.top) });
+            this.#clickCallback({ 'x':(e.clientX - this.#clientRect.left), 'y':(e.clientY - this.#clientRect.top) });
         }, false);
         if(this.#title) { document.title = this.#title; }
         this.#parentElement.appendChild(this.#canvas);
@@ -136,6 +135,7 @@ class Canvas {
     }
 
     #refresh = () => {
+        this.#clientRect = this.#canvas.getBoundingClientRect();
         if(!this.#pauseOnLoseFocus || this.#canvas === document.activeElement) {
             this.#context.clearRect(0, 0, this.#width, this.#height);
             this.#refreshCallback(++this.#frame, this.#mouseHover);
