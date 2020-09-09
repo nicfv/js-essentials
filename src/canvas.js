@@ -19,13 +19,14 @@ class Canvas {
     #backgroundColor = '#000';
     #caseSensitivity = false;
     #pauseOnLoseFocus = true;
-    #refreshCallback = (frame) => {};
-    #clickCallback = (x, y) => {};
+    #refreshCallback = (frame, e) => {};
+    #clickCallback = (e) => {};
     
     #refreshRate = Canvas.#MS_PER_SEC / this.#framesPerSecond;
     #canvas = document.createElement('canvas');
     #context = this.#canvas.getContext('2d');
     #keysDown = [];
+    #mouseHover = { 'x':0, 'y':0 };
     #frame = 0;
 
     /**
@@ -40,8 +41,8 @@ class Canvas {
      * @param backgroundColor A valid CSS color code for the background color of the canvas.
      * @param caseSensitivity When true, input received is case sensitive.
      * @param pauseOnLoseFocus When true, the game will pause when it loses focus.
-     * @param refreshCallback The function(int: frame) to call on frame update.
-     * @param clickCallback The function(int: x, int: y) to call on mouse click.
+     * @param refreshCallback The function(int: frame, obj: mouseLocation) to call on frame update.
+     * @param clickCallback The function(obj: mouseLocation) to call on mouse click.
      */
     constructor(title, id, width, height, tabIndex, parentElement, framesPerSecond, backgroundColor, caseSensitivity, pauseOnLoseFocus, refreshCallback, clickCallback) {
         this.#title = Canvas.#isString(title) ? title : this.#title;
@@ -76,11 +77,11 @@ class Canvas {
      */
     get interval() { return this.#refreshRate; }
     /**
-     * Set the callback function(int: frame) to call on frame update.
+     * Set the callback function(int: frame, obj: mouseLocation) to call on frame update.
      */
     set refreshCallback(x) { this.#refreshCallback = Canvas.#isSet(x) ? x : this.#refreshCallback; }
     /**
-     * Set the callback function(int: x, int: y) to call on mouse click.
+     * Set the callback function(obj: mouseLocation) to call on mouse click.
      */
     set clickCallback(x) { this.#clickCallback = Canvas.#isSet(x) ? x : this.#clickCallback; }
     /**
@@ -116,10 +117,17 @@ class Canvas {
                 }
             }
         }, false);
+        this.#canvas.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            const clientRect = e.target.getBoundingClientRect();
+            this.#mouseHover.x = e.clientX - clientRect.left;
+            this.#mouseHover.y = e.clientY - clientRect.top;
+        }, false);
         this.#canvas.addEventListener('click', (e) => {
             e.preventDefault();
             this.#canvas.focus(); // Redundancy
-            this.#clickCallback(e.x, e.y);
+            const clientRect = e.target.getBoundingClientRect();
+            this.#clickCallback({ 'x':(e.clientX - clientRect.left), 'y':(e.clientY - clientRect.top) });
         }, false);
         if(this.#title) { document.title = this.#title; }
         this.#parentElement.appendChild(this.#canvas);
@@ -130,7 +138,7 @@ class Canvas {
     #refresh = () => {
         if(!this.#pauseOnLoseFocus || this.#canvas === document.activeElement) {
             this.#context.clearRect(0, 0, this.#width, this.#height);
-            this.#refreshCallback(++this.#frame);
+            this.#refreshCallback(++this.#frame, this.#mouseHover);
         }
     };
 }
