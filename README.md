@@ -108,3 +108,11 @@ Logger.logLevel = 4;
 ```
 Logger.severe(string: message);
 ```
+
+## XHTTP
+This static class allows making XMLHTTP requests asynchronously. It requires a callback function with 1 string argument for the HTTP response.
+
+### Asynchronous XMLHTTP Request
+```
+XHTTP.request(string: destination, function(string: response): callback);
+```
