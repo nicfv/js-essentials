@@ -19,7 +19,6 @@ class AsciiTable {
     #colWidth = 0;
     #cellAlign = 0;
     #cellPadding = 1;
-    #cols = 0;
     #rows = [];
 
     /**
@@ -45,8 +44,7 @@ class AsciiTable {
         } else {
             'Invalid cell padding';
         }
-        this.#cols = columns.length;
-        if(this.#cols <= 0) {
+        if(columns.length <= 0) {
             throw 'No columns defined';
         }
         this.#rows.push([]);
@@ -62,12 +60,12 @@ class AsciiTable {
      * @param contents Content to fill the cells with in this row
      */
     addRow(... contents) {
-        if(this.#cols !== arguments.length) {
-            throw 'Each row should accept '+this.#cols+' arguments. Found '+arguments.length;
+        if(this.#rows[0].length !== contents.length) {
+            throw 'Each row should accept '+this.#rows[0].length+' arguments. Found '+contents.length;
         }
         this.#rows.push([]);
-        for(let col = 0; col < this.#cols; col++) {
-            this.#rows[this.#rows.length-1].push(arguments[col]);
+        for(let col = 0; col < this.#rows[0].length; col++) {
+            this.#rows[this.#rows.length-1].push(contents[col]);
         }
         return this;
     }
