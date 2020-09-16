@@ -54,7 +54,7 @@ let canvas = new Canvas(
         bool: caseSensitivity,
         bool: pauseOnLoseFocus,
         function: refreshCallback,
-        function: clickCallback)
+        function: clickCallback);
 ```
 
 ### Getters
