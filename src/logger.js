@@ -3,11 +3,11 @@
  * Defines a logger with system logging functions.
  */
 class Logger {
-    static #_logLevel = 0;
+    static #logLevel = 0;
     /**
      * Determines the minimum level of logs to display.
      */
-    static set logLevel(logLevel) { Logger.#_logLevel = isFinite(+logLevel) ? +logLevel : 0; }
+    static set logLevel(logLevel) { Logger.#logLevel = isFinite(+logLevel) ? +logLevel : 0; }
 
      /**
       * Print a message for debugging. (Log level = 1)
@@ -40,7 +40,7 @@ class Logger {
     static severe(message) { Logger.#printLog(5, 'SEVERE', '#f55', message); }
 
     static #printLog(level, typeString, fontColor, message) {
-        if(Logger.#_logLevel <= level) {
+        if(Logger.#logLevel <= level) {
             console.log('%c[' + typeString.toUpperCase() + '] ' + Logger.#getLineNumber() +
                 ' - ' + Logger.#getCurrentTime() +
                 '\n\t' + message.toString().trim(),
