@@ -47,6 +47,7 @@ let canvas = new Canvas(
         string: id | null,
         int: width,
         int: height,
+        int: pxSize,
         int: tabIndex,
         element: parentElement = document.body,
         int: framesPerSecond,
