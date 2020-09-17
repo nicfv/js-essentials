@@ -13,6 +13,7 @@ class Canvas {
     #id = null;
     #width = 600;
     #height = 400;
+    #pxSize = 1;
     #tabIndex = 1;
     #parentElement = document.body;
     #framesPerSecond = 10;
@@ -34,8 +35,9 @@ class Canvas {
      * Create a new HTML canvas element with pre built event handlers.
      * @param title The title of the game. Leave null to keep the existing value.
      * @param id The HTML id of the canvas.
-     * @param width The width of the canvas in pixels.
-     * @param height The height of the canvas in pixels.
+     * @param width The width of the game in pixels.
+     * @param height The height of the game in pixels.
+     * @param pxSize Scale the width and height by this amount.
      * @param tabIndex The tab index of the canvas.
      * @param parentElement The element that this canvas is nested in.
      * @param framesPerSecond The amount of frames to be displayed, per second.
@@ -45,11 +47,12 @@ class Canvas {
      * @param refreshCallback The function(int: frame, obj: mouseLocation) to call on frame update.
      * @param clickCallback The function(obj: mouseLocation) to call on mouse click.
      */
-    constructor(title, id, width, height, tabIndex, parentElement, framesPerSecond, backgroundColor, caseSensitivity, pauseOnLoseFocus, refreshCallback, clickCallback) {
+    constructor(title, id, width, height, pxSize, tabIndex, parentElement, framesPerSecond, backgroundColor, caseSensitivity, pauseOnLoseFocus, refreshCallback, clickCallback) {
         this.#title = Canvas.#isString(title) ? title : this.#title;
         this.#id = Canvas.#isString(id) ? id : this.#id;
         this.#width = Canvas.#isNumeric(width) ? width : this.#width;
         this.#height = Canvas.#isNumeric(height) ? height : this.#height;
+        this.#pxSize = Canvas.#isNumeric(pxSize) ? pxSize : this.#pxSize;
         this.#tabIndex = Canvas.#isNumeric(tabIndex) ? tabIndex : this.#tabIndex;
         this.#parentElement = Canvas.#isSet(parentElement) ? parentElement : this.#parentElement;
         this.#refreshRate = Canvas.#MS_PER_SEC / (Canvas.#isNumeric(framesPerSecond) ? framesPerSecond : this.#framesPerSecond);
@@ -66,11 +69,11 @@ class Canvas {
      */
     get graphics() { return this.#context; }
     /**
-     * Returns the width of the canvas in pixels.
+     * Returns the width of the game in pixels.
      */
     get width() { return this.#width; }
     /**
-     * Returns the height of the canvas in pixels.
+     * Returns the height of the game in pixels.
      */
     get height() { return this.#height; }
     /**
@@ -95,8 +98,11 @@ class Canvas {
         if(!!this.#id) { this.#canvas.id = this.#id; }
         this.#canvas.width = this.#width;
         this.#canvas.height = this.#height;
-        this.#canvas.style.backgroundColor = this.#backgroundColor;
         this.#canvas.tabIndex = this.#tabIndex;
+        this.#canvas.style.backgroundColor = this.#backgroundColor;
+        this.#canvas.style.width = this.#width * this.#pxSize;
+        this.#canvas.style.height = this.#height * this.#pxSize;
+        this.#canvas.style.imageRendering = 'pixelated';
         this.#canvas.addEventListener('keydown', (e) => {
             e.preventDefault();
             let keyName = e.key;
