@@ -100,8 +100,8 @@ class Canvas {
         this.#canvas.height = this.#height;
         this.#canvas.tabIndex = this.#tabIndex;
         this.#canvas.style.backgroundColor = this.#backgroundColor;
-        this.#canvas.style.width = this.#width * this.#pxSize;
-        this.#canvas.style.height = this.#height * this.#pxSize;
+        this.#canvas.style.width = (this.#width * this.#pxSize) + 'px';
+        this.#canvas.style.height = (this.#height * this.#pxSize) + 'px';
         this.#canvas.style.imageRendering = 'pixelated';
         this.#canvas.addEventListener('keydown', (e) => {
             e.preventDefault();
